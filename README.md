@@ -1,1 +1,1 @@
-# g-01-oneshotimagemrecognition
+# g-01-oneshotimagerecognition
