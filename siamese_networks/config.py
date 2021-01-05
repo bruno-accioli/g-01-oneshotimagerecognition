@@ -79,7 +79,8 @@ class Configuration():
     
     def __init__(self, valid_trials=320, test_trials=400, way=20,
                  num_train=90000, batch_size=128, num_workers=1,
-                 shuffle=True, augment=True, is_train=True,
+                 shuffle=True, augment=True, is_train=True, 
+                 get_embedding=False, n_embeddings=1000, alphabet='Mongolian',
                  epochs=200, init_momentum=0.5, lr_patience=1,
                  train_patience=20, flush=False, num_model=1,
                  use_gpu=True, best=True, random_seed=1,
@@ -94,6 +95,9 @@ class Configuration():
         self.shuffle = shuffle
         self.augment = augment
         self.is_train = is_train
+        self.get_embedding = get_embedding
+        self.n_embeddings = n_embeddings
+        self.alphabet = alphabet
         self.epochs = epochs
         self.init_momentum = init_momentum
         self.lr_patience = lr_patience
@@ -122,6 +126,9 @@ class Configuration():
                          shuffle='Whether to shuffle the dataset between epochs',
                          augment='Whether to use data augmentation for train data',
                          is_train='Whether to train or test the model',
+                         get_embedding='Whether to evaluate accuracy or get image embeddings',
+                         n_embeddings='number of images to generate embeddings from',
+                         alphabet='Name of the Alphabet to generate embeddings',
                          epochs='# of epochs to train for',
                          init_momentum='Initial layer-wise momentum value',
                          lr_patience='Number of epochs to wait before reducing lr',

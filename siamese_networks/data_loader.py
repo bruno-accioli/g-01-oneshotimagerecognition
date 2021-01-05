@@ -96,6 +96,42 @@ def get_test_loader(data_dir,
     return test_loader
 
 
+def get_embedding_test_loader(data_dir,
+                               num_test,
+                               batch_size=5,
+                               seed=0,
+                               num_workers=4,
+                               pin_memory=True,
+                               alphabet=None):
+    """
+    Utility function for loading and returning train and valid multi-process
+    iterators over the Omniglot dataset.
+    If using CUDA, num_workers should be set to `1` and pin_memory to `True`.
+    Args
+    ----
+    - data_dir: path directory to the dataset.
+    - batch_size: how many samples per batch to load.
+    - augment: whether to load the augmented version of the train dataset.
+    - num_workers: number of subprocesses to use when loading the dataset. Set
+      to `1` if using GPU.
+    - pin_memory: whether to copy tensors into CUDA pinned memory. Set it to
+      `True` if using GPU.
+    """
+    if alphabet:
+        test_dir = os.path.join(data_dir, alphabet)
+    else:
+        test_dir = os.path.join(data_dir, 'test')
+
+    test_dataset = dset.ImageFolder(root=test_dir)
+    embedding_test_dataset = OmniglotTestEmbeddings(
+        test_dataset, num_test=num_test, seed=seed,
+    )
+    embedding_test_loader = DataLoader(
+        embedding_test_dataset, batch_size=batch_size, shuffle=False,
+        num_workers=num_workers, pin_memory=pin_memory,
+    )
+    return embedding_test_loader
+
 # adapted from https://github.com/fangpin/siamese-network
 class OmniglotTrain(Dataset):
     def __init__(self, dataset, num_train, augment=False):
@@ -189,3 +225,26 @@ class OmniglotTest(Dataset):
         img1 = self.transform(img1)
         img2 = self.transform(img2)
         return img1, img2
+
+
+class OmniglotTestEmbeddings(Dataset):
+    def __init__(self, dataset, num_test, seed=0):
+        super(OmniglotTestEmbeddings, self).__init__()
+        self.dataset = dataset
+        self.num_test = num_test
+        self.transform = transforms.ToTensor()
+        self.seed = seed
+
+    def __len__(self):
+        return self.num_test
+
+    def __getitem__(self, index):
+        image = random.choice(self.dataset.imgs)
+
+        image_label = image[1]
+        image = Image.open(image[0])
+        image = image.convert('L')
+
+        image = transforms.ToTensor()(image)
+        image_label = torch.from_numpy(np.array([image_label], dtype=np.float32))
+        return (image, image_label)
