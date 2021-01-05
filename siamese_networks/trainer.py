@@ -6,6 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
+import numpy as np
 
 import os
 import time
@@ -43,8 +44,12 @@ class Trainer(object):
             self.num_train = len(self.train_loader.dataset)
             self.num_valid = self.valid_loader.dataset.trials
         else:
-            self.test_loader = data_loader
-            self.num_test = self.test_loader.dataset.trials
+            if config.get_embedding:
+                self.test_embedding_loader = data_loader
+                self.n_embeddings = config.n_embeddings
+            else:
+                self.test_loader = data_loader
+                self.num_test = config.n_embeddings
 
         self.model = SiameseNet()
         if config.use_gpu:
@@ -297,7 +302,32 @@ class Trainer(object):
                 correct, self.num_test, test_acc
             )
         )
+    
+    def get_embeddings(self):
+        # load best model
+        self.load_checkpoint(best=self.best)
 
+        # switch to evaluate mode
+        self.model.eval()
+        
+        images = []
+        embeddings = []
+        labels = []
+        for i, (x, y) in enumerate(self.test_embedding_loader):
+            if self.use_gpu:
+                x = x.cuda()
+            x = Variable(x, volatile=True)
+
+            batch_size = x.shape[0]
+
+            # compute log probabilities
+            out = self.model.sub_forward(x)
+            images.append(x.cpu().detach().numpy())
+            embeddings.append(out.cpu().detach().numpy())
+            labels.append(y.cpu().detach().numpy())
+        
+        return np.array(images), np.array(embeddings), np.array(labels)
+        
     def temper_momentum(self, epoch):
         """
         This function linearly increases the per-layer momentum to
@@ -338,7 +368,11 @@ class Trainer(object):
         if best:
             filename = 'best_model_ckpt.tar'
         ckpt_path = os.path.join(self.ckpt_dir, filename)
-        ckpt = torch.load(ckpt_path)
+        
+        if self.use_gpu and torch.cuda.is_available():
+            ckpt = torch.load(ckpt_path)
+        else:
+            ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
 
         # load variables from checkpoint
         self.start_epoch = ckpt['epoch']
