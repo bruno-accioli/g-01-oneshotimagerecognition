@@ -13,7 +13,7 @@ import time
 import shutil
 
 from tqdm import tqdm
-from model import SiameseNet
+from model import SiameseNet, SiameseNetWithBN
 from utils import AverageMeter, get_num_model
 
 
@@ -51,7 +51,11 @@ class Trainer(object):
                 self.test_loader = data_loader
                 self.num_test = config.n_embeddings
 
-        self.model = SiameseNet()
+        if config.use_batch_norm:
+            self.model = SiameseNetWithBN()
+        else:
+            self.model = SiameseNet()
+            
         if config.use_gpu:
             self.model.cuda()
 

@@ -183,7 +183,7 @@ def save_config(config, hyperparams, override=False):
 
 def load_config(config):
     num_model = get_num_model(config)
-    model_dir = os.path.join(config.ckpt_dir, num_model)
+    model_dir = os.path.join(config.ckpt_dir, str(num_model))
     filename = 'params.json'
     param_path = os.path.join(model_dir, filename)
     params = json.load(open(param_path))

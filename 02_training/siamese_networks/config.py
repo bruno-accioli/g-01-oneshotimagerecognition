@@ -49,6 +49,8 @@ train_arg.add_argument('--lr_patience', type=int, default=1,
                        help='Number of epochs to wait before reducing lr')
 train_arg.add_argument('--train_patience', type=int, default=20,
                        help='Number of epochs to wait before stopping train')
+train_arg.add_argument('--use_batch_norm', type=bool, default=False,
+                       help='Whether to use batch normalization on convolution layers')
 
 
 # other params
@@ -82,7 +84,7 @@ class Configuration():
                  shuffle=True, augment=True, is_train=True, 
                  get_embedding=False, n_embeddings=1000, alphabet='Mongolian',
                  epochs=200, init_momentum=0.5, lr_patience=1,
-                 train_patience=20, flush=False, num_model=1,
+                 train_patience=20, use_batch_norm=False, flush=False, num_model=1,
                  use_gpu=True, best=True, random_seed=1,
                  data_dir='./data/changed/', plot_dir='./plots/',
                  ckpt_dir='./ckpt/', logs_dir='./logs/', resume=False):
@@ -102,6 +104,7 @@ class Configuration():
         self.init_momentum = init_momentum
         self.lr_patience = lr_patience
         self.train_patience = train_patience
+        self.use_batch_norm = use_batch_norm
         self.flush = flush
         self.num_model = num_model
         self.use_gpu = use_gpu
@@ -133,6 +136,7 @@ class Configuration():
                          init_momentum='Initial layer-wise momentum value',
                          lr_patience='Number of epochs to wait before reducing lr',
                          train_patience='Number of epochs to wait before stopping train',
+                         use_batch_norm='Whether to use batch normalization on convolution layers',
                          flush='Whether to delete ckpt + log files for model no.',
                          num_model='Model number used for unique checkpointing',
                          use_gpu="Whether to run on the GPU",
