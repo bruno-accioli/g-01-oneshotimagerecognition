@@ -49,7 +49,7 @@ class Trainer(object):
                 self.n_embeddings = config.n_embeddings
             else:
                 self.test_loader = data_loader
-                self.num_test = config.n_embeddings
+                self.num_test = self.test_loader.dataset.trials
 
         if config.use_batch_norm:
             self.model = SiameseNetWithBN()
